@@ -1,0 +1,47 @@
+from flask import Flask, request, jsonify, render_template
+import requests
+
+app = Flask(__name__)
+
+# Proxmox API Configuration
+PROXMOX_URL = "https://192.168.1.252:8006/api2/json"
+TOKEN_ID = ""
+TOKEN_SECRET = ""
+HEADERS = {
+    'Authorization': f'PVEAPIToken={TOKEN_ID}={TOKEN_SECRET}',
+    'Content-Type': 'application/json'
+}
+
+# Function to fetch VM or LXC container data from Proxmox API
+def get_vmid_data(vmid_or_containerid):
+    url_vm = f"{PROXMOX_URL}/nodes/{'localhost'}/qemu/{vmid_or_containerid}/status/current"  # VM URL
+    url_lxc = f"{PROXMOX_URL}/nodes/{'localhost'}/lxc/{vmid_or_containerid}/status/current"  # LXC URL
+
+    # Try to fetch data for VM first
+    response_vm = requests.get(url_vm, headers=HEADERS, verify=False)
+    if response_vm.status_code == 200:
+        return {"type": "VM", "data": response_vm.json()}
+
+    # If VM not found, try for LXC container
+    response_lxc = requests.get(url_lxc, headers=HEADERS, verify=False)
+    if response_lxc.status_code == 200:
+        return {"type": "LXC", "data": response_lxc.json()}
+
+    return {"error": "Failed to find the VM or LXC container with this ID"}
+
+# Route to display the form
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Route to handle form submission (POST request)
+@app.route('/get_data', methods=['POST'])
+def get_data():
+    vmid_or_containerid = request.form['id']
+    data = get_vmid_data(vmid_or_containerid)
+
+    # Return the data as JSON to display on the webpage
+    return jsonify(data)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5010)  # Run Flask app on a specific IP and port
