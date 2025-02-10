@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 PROXMOX_URL = "https://192.168.1.252:8006/api2/json"
-TOKEN_ID = "pythonapi@pam!apipython"
-TOKEN_SECRET = "8b13892c-c6e9-43c0-b128-3f17dd0f932a"
+TOKEN_ID = ""
+TOKEN_SECRET = ""
 headers = {
     'Authorization': f'PVEAPIToken={TOKEN_ID}={TOKEN_SECRET}',
     'Content-Type': 'application/json'
