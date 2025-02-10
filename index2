@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxmox VM/LXC Info</title>
+    <script>
+        function fetchData(event) {
+            event.preventDefault();
+            const id = document.getElementById("id").value;
+            const resultDiv = document.getElementById("result");
+
+            fetch('/get_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id=${id}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    let output = `<h3>Type: ${data.type}</h3>`;
+                    output += `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+                    resultDiv.innerHTML = output;
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `<p style="color: red;">Error fetching data: ${error}</p>`;
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Enter VM/Container ID</h1>
+    <form id="vm-container-form" onsubmit="fetchData(event)">
+        <label for="id">VM/Container ID:</label>
+        <input type="text" id="id" placeholder="Enter VM/Container ID" required>
+        <br>
+        <button type="submit">Get Data</button>
+    </form>
+
+    <div id="result"></div>
+</body>
+</html>
